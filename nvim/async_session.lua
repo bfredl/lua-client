@@ -9,6 +9,7 @@ function Response.new(msgpack_stream, request_id)
 end
 
 function Response:send(value, is_error)
+  print("/", self._request_id, value)
   if is_error then
     self._msgpack_stream:send({1, self._request_id, value, nil})
   else
@@ -33,6 +34,7 @@ function AsyncSession:request(method, args, response_cb)
   self._next_request_id = request_id + 1
   self._msgpack_stream:send({0, request_id, method, args})
   self._pending_requests[request_id] = response_cb
+  print("+", request_id, method, args[1])
 end
 
 function AsyncSession:run(request_cb, notification_cb)
@@ -43,6 +45,7 @@ function AsyncSession:run(request_cb, notification_cb)
       --   - msg[2]: id
       --   - msg[3]: method name
       --   - msg[4]: arguments
+      print("*", msg[2], msg[3])
       request_cb(msg[3], msg[4], Response.new(self._msgpack_stream, msg[2]))
     elseif msg_type == 1 then
       -- response to a previous request:
@@ -50,6 +53,11 @@ function AsyncSession:run(request_cb, notification_cb)
       --   - msg[3]: error(if any)
       --   - msg[4]: result(if not errored)
       local id = msg[2]
+      print("-", id, msg[3], msg[4])
+      if msg[3] then
+          print(msg[3][1])
+          print(msg[3][2])
+      end
       local handler = self._pending_requests[id]
       self._pending_requests[id] = nil
       handler(msg[3], msg[4])

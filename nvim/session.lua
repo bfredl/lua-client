@@ -10,6 +10,7 @@ local function resume(co, ...)
 
   if coroutine.status(co) == 'dead' then
     if not status then
+      print(result)
       error(result)
     end
     return
@@ -30,6 +31,7 @@ local function coroutine_exec(func, ...)
 
   resume(coroutine.create(function()
     local status, result = copcall(func, unpack(args))
+    print(status, result)
     if on_complete then
       coroutine.yield(function()
         -- run the completion callback on the main thread
